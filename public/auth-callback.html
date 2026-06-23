@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Authenticating...</title>
+  </head>
+  <body>
+    <script>
+      (function() {
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const accessToken = params.get('access_token');
+        const error = params.get('error') || new URLSearchParams(window.location.search).get('error');
+
+        if (window.opener) {
+          if (accessToken) {
+            window.opener.postMessage({ type: 'SPOTIFY_AUTH_SUCCESS', accessToken: accessToken }, '*');
+          } else if (error) {
+            window.opener.postMessage({ type: 'SPOTIFY_AUTH_ERROR', error: error }, '*');
+          }
+          window.close();
+        } else {
+          document.body.innerHTML = "Authentication complete. You can close this window.";
+        }
+      })();
+    </script>
+    <p>Authentication successful. This window should close automatically.</p>
+  </body>
+</html>

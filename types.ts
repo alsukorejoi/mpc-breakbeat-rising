@@ -53,6 +53,8 @@ export interface User {
   extraPointsBalance?: number; // Current balance of extra points
   extraPointsClaimedDates?: Record<string, number>; // Maps date string to number of extra points extracted from it
   patchedDates?: string[]; // Dates that were patched using extra points
+  spotifyAccessToken?: string;
+  spotifyPremiumMode?: boolean;
 }
 
 export interface CloudConfig {

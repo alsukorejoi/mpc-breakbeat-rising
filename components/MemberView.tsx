@@ -76,6 +76,61 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
   const isHutangDay = isPastDate && tracks.length > 0 && !hasCheckedInSelectedDate;
   const isLockedHutang = isHutangDay && !isWeekendVal;
 
+  const handleConnectSpotify = () => {
+    let clientId = localStorage.getItem('SPOTIFY_CLIENT_ID');
+    if (!clientId) {
+      clientId = window.prompt("Dev Setup: Please enter your Spotify Client ID.\\n\\nMake sure you have added 'https://<your-app-url>/auth-callback.html' to the Redirect URIs in your Spotify Developer Dashboard.");
+      if (clientId) {
+        localStorage.setItem('SPOTIFY_CLIENT_ID', clientId);
+      } else {
+        return;
+      }
+    }
+
+    const redirectUri = `${window.location.origin}/auth-callback.html`;
+    const scopes = 'user-read-private user-read-email';
+    const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&show_dialog=true`;
+
+    window.open(authUrl, 'spotify_popup', 'width=600,height=700');
+  };
+
+  useEffect(() => {
+    const handleMessage = async (event: MessageEvent) => {
+      if (!event.origin.includes('localhost') && !event.origin.endsWith('.run.app')) {
+        return;
+      }
+      
+      if (event.data?.type === 'SPOTIFY_AUTH_SUCCESS') {
+        const { accessToken } = event.data;
+        try {
+          const res = await fetch('https://api.spotify.com/v1/me', {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const isPremium = data.product === 'premium';
+            
+            const updatedUser = await storageService.updateUserProfile(currentUser.id, {
+              spotifyAccessToken: accessToken,
+              spotifyPremiumMode: isPremium
+            });
+            onUpdateUser(updatedUser);
+            alert(`Verified! Premium Status: ${isPremium ? 'YES' : 'NO'} (Plan: ${data.product})`);
+          }
+        } catch (e) {
+          alert('Failed to verify Spotify account status.');
+        }
+      } else if (event.data?.type === 'SPOTIFY_AUTH_ERROR') {
+        alert('Spotify Auth error: ' + event.data.error);
+        if (event.data.error === 'invalid_client') {
+            localStorage.removeItem('SPOTIFY_CLIENT_ID');
+        }
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [currentUser.id, onUpdateUser]);
+
   const calculateProgress = () => {
     if (tracks.length === 0) return 0;
     const matchedCount = tracks.filter(t => matchedStatus[t.id]).length;
@@ -521,6 +576,11 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
             <div className="font-bold text-white text-lg leading-tight">{currentUser.appUsername}</div>
             <div className="text-[10px] text-neon-green mt-0.5 flex items-center gap-1 opacity-80">
               <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Online
+              {currentUser.spotifyPremiumMode && (
+                  <span className="ml-2 bg-green-900/50 text-green-400 border border-green-500/30 px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider font-bold">
+                    Premium
+                  </span>
+              )}
             </div>
           </div>
         </div>
@@ -1172,6 +1232,23 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
                                    +{currentUser.lastFmAccounts.length - 1} More
                                </div>
                            )}
+                        </div>
+                     </div>
+
+                     <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center border shrink-0 ${currentUser.spotifyPremiumMode ? 'bg-green-900/20 text-green-500 border-green-500/20' : 'bg-gray-900/20 text-gray-400 border-gray-500/20'}`}>
+                           <ExternalLink size={20} />
+                        </div>
+                        <div className="overflow-hidden w-full flex justify-between items-center">
+                           <div>
+                               <div className="text-xs text-gray-500 font-bold uppercase truncate">Spotify Premium</div>
+                               <div className={`font-bold truncate ${currentUser.spotifyPremiumMode ? 'text-green-400' : 'text-gray-400'}`}>
+                                   {currentUser.spotifyPremiumMode ? 'Verified Active' : 'Not Verified'}
+                               </div>
+                           </div>
+                           <button onClick={handleConnectSpotify} className="text-[10px] text-white font-bold bg-[#1DB954] hover:bg-[#1ed760] px-3 py-1.5 rounded-full shrink-0 shadow-lg">
+                               Verify
+                           </button>
                         </div>
                      </div>
 
