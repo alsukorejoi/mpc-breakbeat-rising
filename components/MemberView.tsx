@@ -119,13 +119,17 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
   };
 
   useEffect(() => {
-    const handleMessage = async (event: MessageEvent) => {
-      if (!event.origin.includes('localhost') && !event.origin.endsWith('.run.app') && !event.origin.endsWith('.vercel.app')) {
+    const handleMessage = async (event: MessageEvent | MessageEvent<any>) => {
+      console.log('Received message:', event);
+      if (event.type === 'message' && !event.origin.includes('localhost') && !event.origin.endsWith('.run.app') && !event.origin.endsWith('.vercel.app')) {
+        console.warn('Ignoring message from unauthorized origin:', event.origin);
         return;
       }
       
-      if (event.data?.type === 'SPOTIFY_AUTH_CODE') {
-        const { code } = event.data;
+      const payload = event.data;
+      if (payload?.type === 'SPOTIFY_AUTH_CODE') {
+        const code = payload.code;
+        console.log('Spotify Auth Code received:', code);
         const codeVerifier = localStorage.getItem('spotify_code_verifier');
         const clientId = localStorage.getItem('SPOTIFY_CLIENT_ID');
         const redirectUri = `${window.location.origin}/auth-callback.html`;
@@ -148,6 +152,7 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
           if (tokenResponse.ok) {
             const tokenData = await tokenResponse.json();
             const accessToken = tokenData.access_token;
+            console.log('Got access token');
             
             const res = await fetch('https://api.spotify.com/v1/me', {
               headers: { 'Authorization': `Bearer ${accessToken}` }
@@ -155,6 +160,7 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
             if (res.ok) {
               const data = await res.json();
               const isPremium = data.product === 'premium';
+              console.log('User profile:', data);
               
               const updatedUser = await storageService.updateUserProfile(currentUser.id, {
                 spotifyAccessToken: accessToken,
@@ -162,23 +168,39 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
               });
               onUpdateUser(updatedUser);
               alert(`Verified! Premium Status: ${isPremium ? 'YES' : 'NO'} (Plan: ${data.product})`);
+            } else {
+               const pErr = await res.text();
+               console.error('Failed to get user profile:', pErr);
+               alert('Gagal mengambil profil Spotify.');
             }
           } else {
              const err = await tokenResponse.json();
-             alert('Failed to get Token: ' + JSON.stringify(err));
+             console.error('Failed to get token:', err);
+             alert('Gagal mendapatkan Token dari Spotify: ' + JSON.stringify(err));
           }
-        } catch (e) {
-          alert('Failed to verify Spotify account status.');
+        } catch (e: any) {
+          console.error('Exception during Spotify verification:', e);
+          alert('Error: Gagal memverifikasi akun Spotify. ' + e.message);
         }
-      } else if (event.data?.type === 'SPOTIFY_AUTH_ERROR') {
-        alert('Spotify Auth error: ' + event.data.error);
-        if (event.data.error === 'invalid_client') {
+      } else if (payload?.type === 'SPOTIFY_AUTH_ERROR') {
+        console.error('Spotify Auth error:', payload.error);
+        alert('Spotify Auth error: ' + payload.error);
+        if (payload.error === 'invalid_client') {
             localStorage.removeItem('SPOTIFY_CLIENT_ID');
         }
       }
     };
+
     window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    
+    // Broadcast channel fallback
+    const bc = new BroadcastChannel('spotify_auth');
+    bc.onmessage = handleMessage;
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      bc.close();
+    };
   }, [currentUser.id, onUpdateUser]);
 
   const calculateProgress = () => {
