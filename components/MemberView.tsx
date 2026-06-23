@@ -78,9 +78,10 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
 
   const handleConnectSpotify = async () => {
     let clientId = localStorage.getItem('SPOTIFY_CLIENT_ID');
-    if (!clientId) {
-      clientId = window.prompt("Dev Setup: Please enter your Spotify Client ID.\\n\\nMake sure you have added 'https://<your-app-url>/auth-callback.html' to the Redirect URIs in your Spotify Developer Dashboard.");
-      if (clientId) {
+    if (!clientId || clientId.trim() === '') {
+      clientId = window.prompt("Dev Setup: Please enter your valid Spotify Client ID.\\n\\nMake sure you have added 'https://<your-app-url>/auth-callback.html' to the Redirect URIs in your Spotify Developer Dashboard.\\n(If you entered a wrong one previously, you can clear it using localStorage.removeItem('SPOTIFY_CLIENT_ID') in console)");
+      if (clientId && clientId.trim() !== '') {
+        clientId = clientId.trim();
         localStorage.setItem('SPOTIFY_CLIENT_ID', clientId);
       } else {
         return;
@@ -119,7 +120,7 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
 
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
-      if (!event.origin.includes('localhost') && !event.origin.endsWith('.run.app')) {
+      if (!event.origin.includes('localhost') && !event.origin.endsWith('.run.app') && !event.origin.endsWith('.vercel.app')) {
         return;
       }
       
@@ -1295,9 +1296,14 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
                                    {currentUser.spotifyPremiumMode ? 'Verified Active' : 'Not Verified'}
                                </div>
                            </div>
-                           <button onClick={handleConnectSpotify} className="text-[10px] text-white font-bold bg-[#1DB954] hover:bg-[#1ed760] px-3 py-1.5 rounded-full shrink-0 shadow-lg">
-                               Verify
-                           </button>
+                           <div className="flex flex-col items-end gap-2 shrink-0">
+                               <button onClick={handleConnectSpotify} className="text-[10px] text-white font-bold bg-[#1DB954] hover:bg-[#1ed760] px-3 py-1.5 rounded-full shadow-lg">
+                                   Verify
+                               </button>
+                               <button onClick={() => { localStorage.removeItem('SPOTIFY_CLIENT_ID'); alert('Spotify Client ID reset. Click Verify again.'); }} className="text-[10px] text-gray-500 hover:text-white underline">
+                                   Reset ID
+                               </button>
+                           </div>
                         </div>
                      </div>
 
