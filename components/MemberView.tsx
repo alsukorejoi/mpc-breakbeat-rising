@@ -170,8 +170,8 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
               alert(`Verified! Premium Status: ${isPremium ? 'YES' : 'NO'} (Plan: ${data.product})`);
             } else {
                const pErr = await res.text();
-               console.error('Failed to get user profile:', pErr);
-               alert('Gagal mengambil profil Spotify.');
+               console.error('Failed to get user profile:', pErr, tokenData);
+               alert('Gagal mengambil profil Spotify. Error: ' + pErr + '\\nToken: ' + (accessToken ? 'Ada' : 'Kosong'));
             }
           } else {
              const err = await tokenResponse.json();
