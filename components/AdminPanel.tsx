@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Trash2, Save, ArrowLeft, Plus, Settings, Database, Cloud, CloudOff, Download, Upload, ListMusic, Loader2, RefreshCw, Users, CheckCircle2, Clock, Music, Search, Filter, XCircle, BarChart3, Calendar, Copy, Key, Lock, ShieldCheck, Eye, X, User as UserIcon, Link as LinkIcon, Headphones, CalendarCheck, MessageCircle } from 'lucide-react';
+import { Trash2, Save, ArrowLeft, Plus, Settings, Database, Cloud, CloudOff, Download, Upload, ListMusic, Loader2, RefreshCw, Users, CheckCircle2, Clock, Music, Search, Filter, XCircle, BarChart3, Calendar, Copy, Key, Lock, ShieldCheck, Eye, X, User as UserIcon, Link as LinkIcon, Headphones, CalendarCheck, MessageCircle, ExternalLink } from 'lucide-react';
 import { TargetTrack, CloudConfig, User, WeeklySchedule, LastFmTrack } from '../types';
 import { storageService } from '../services/storage';
 import { fetchRecentTracks } from '../services/lastFmService';
