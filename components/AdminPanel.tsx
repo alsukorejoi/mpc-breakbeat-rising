@@ -689,7 +689,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                                         return (
                                             <tr key={user.id} className="group hover:bg-white/5 transition-colors">
                                                 <td className={`py-4 pl-2 align-middle font-bold ${checkedIn ? 'text-white' : 'text-red-400'}`}>
-                                                    {user.appUsername}
+                                                    <div className="flex flex-col">
+                                                        <span>{user.appUsername}</span>
+                                                        {user.spotifyPremiumMode && (
+                                                            <span className="text-[8px] bg-[#1DB954]/20 text-[#1DB954] border border-[#1DB954]/30 px-1 py-0.5 rounded w-fit mt-1 uppercase tracking-widest font-black inline-flex items-center gap-0.5">
+                                                                <span className="w-1 h-1 bg-[#1DB954] rounded-full inline-block"></span>
+                                                                Premium
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td className="py-4 align-middle text-gray-400 text-[10px] font-mono leading-tight">
                                                     <div>{user.lastFmUsername}</div>
@@ -882,7 +890,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                 {/* Content (Flex-1 Scrollable) */}
                 <div className="px-8 pb-8 flex-1 overflow-y-auto custom-scrollbar pt-14">
                     <div className="text-center mb-8">
-                        <h2 className="text-2xl font-bold text-white">{viewingUser.appUsername}</h2>
+                        <h2 className="text-2xl font-bold text-white flex items-center justify-center gap-2">
+                            {viewingUser.appUsername}
+                            {viewingUser.spotifyPremiumMode && (
+                                <span className="bg-[#1DB954] text-black text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">
+                                    Premium
+                                </span>
+                            )}
+                        </h2>
                         <div className="text-xs text-gray-500 font-mono mt-1">ID: {viewingUser.id}</div>
                         <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
                             {isCheckedInToday(viewingUser) ? (
