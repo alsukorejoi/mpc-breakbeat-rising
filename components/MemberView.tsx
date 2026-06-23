@@ -76,17 +76,10 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
   const isHutangDay = isPastDate && tracks.length > 0 && !hasCheckedInSelectedDate;
   const isLockedHutang = isHutangDay && !isWeekendVal;
 
+  const SPOTIFY_CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID || '19558308ed174b63a90ce64d9221036d'; // Client ID Utama
+
   const handleConnectSpotify = async () => {
-    let clientId = localStorage.getItem('SPOTIFY_CLIENT_ID');
-    if (!clientId || clientId.trim() === '') {
-      clientId = window.prompt("Dev Setup: Please enter your valid Spotify Client ID.\\n\\nMake sure you have added 'https://<your-app-url>/auth-callback.html' to the Redirect URIs in your Spotify Developer Dashboard.\\n(If you entered a wrong one previously, you can clear it using localStorage.removeItem('SPOTIFY_CLIENT_ID') in console)");
-      if (clientId && clientId.trim() !== '') {
-        clientId = clientId.trim();
-        localStorage.setItem('SPOTIFY_CLIENT_ID', clientId);
-      } else {
-        return;
-      }
-    }
+    const clientId = SPOTIFY_CLIENT_ID;
 
     const redirectUri = `${window.location.origin}/auth-callback.html`;
     const scopes = 'user-read-private user-read-email';
@@ -131,7 +124,7 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
         const code = payload.code;
         console.log('Spotify Auth Code received:', code);
         const codeVerifier = localStorage.getItem('spotify_code_verifier');
-        const clientId = localStorage.getItem('SPOTIFY_CLIENT_ID');
+        const clientId = SPOTIFY_CLIENT_ID;
         const redirectUri = `${window.location.origin}/auth-callback.html`;
 
         try {
@@ -185,9 +178,6 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
       } else if (payload?.type === 'SPOTIFY_AUTH_ERROR') {
         console.error('Spotify Auth error:', payload.error);
         alert('Spotify Auth error: ' + payload.error);
-        if (payload.error === 'invalid_client') {
-            localStorage.removeItem('SPOTIFY_CLIENT_ID');
-        }
       }
     };
 
@@ -1321,9 +1311,6 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
                            <div className="flex flex-col items-end gap-2 shrink-0">
                                <button onClick={handleConnectSpotify} className="text-[10px] text-white font-bold bg-[#1DB954] hover:bg-[#1ed760] px-3 py-1.5 rounded-full shadow-lg">
                                    Verify
-                               </button>
-                               <button onClick={() => { localStorage.removeItem('SPOTIFY_CLIENT_ID'); alert('Spotify Client ID reset. Click Verify again.'); }} className="text-[10px] text-gray-500 hover:text-white underline">
-                                   Reset ID
                                </button>
                            </div>
                         </div>
