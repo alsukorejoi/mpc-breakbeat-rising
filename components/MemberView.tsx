@@ -155,12 +155,36 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
               const isPremium = data.product === 'premium';
               console.log('User profile:', data);
               
+              if (!isPremium) {
+                alert('Gagal! Akun ini bukan Spotify Premium. Harap gunakan langganan Premium untuk memverifikasi akun.');
+                return;
+              }
+
+              const currentVerified = currentUser.verifiedSpotifyAccounts || [];
+              const alreadyVerified = currentVerified.find(acc => acc.id === data.id);
+              
+              let newAccounts = [...currentVerified];
+              if (!alreadyVerified) {
+                newAccounts.push({
+                   id: data.id,
+                   email: data.email,
+                   plan: data.product,
+                   addedAt: new Date().toISOString()
+                });
+              }
+
               const updatedUser = await storageService.updateUserProfile(currentUser.id, {
                 spotifyAccessToken: accessToken,
-                spotifyPremiumMode: isPremium
+                spotifyPremiumMode: true,
+                verifiedSpotifyAccounts: newAccounts
               });
               onUpdateUser(updatedUser);
-              alert(`Verified! Premium Status: ${isPremium ? 'YES' : 'NO'} (Plan: ${data.product})`);
+              
+              if (alreadyVerified) {
+                alert(`Token Spotify diperbarui! Akun ${data.email || data.id} sudah pernah diverifikasi sebelumnya.`);
+              } else {
+                alert(`Berhasil! Akun Premium ditambahkan. Total akun Spotify terverifikasi: ${newAccounts.length}`);
+              }
             } else {
                const pErr = await res.text();
                console.error('Failed to get user profile:', pErr, tokenData);
@@ -479,6 +503,16 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
       alert("Username aplikasi tidak boleh kosong!");
       return;
     }
+    
+    // Validasi 1 Last.fm = 1 Spotify Premium
+    const verifiedPremiumCount = currentUser.verifiedSpotifyAccounts?.length || (currentUser.spotifyPremiumMode ? 1 : 0);
+    const validLastFmCount = editLastFmAccounts.filter(a => a.username.trim() && a.apiKey.trim()).length;
+    
+    if (validLastFmCount > verifiedPremiumCount) {
+      alert(`Anda mencoba menyimpan ${validLastFmCount} akun Last.fm, tetapi Anda baru memiliki ${verifiedPremiumCount} akun Spotify Premium terverifikasi.\n\nHarap hubungkan akun Spotify Premium tambahan di menu profil sebelum menambahkan akun Last.fm baru.`);
+      return;
+    }
+
     setIsSavingProfile(true);
     try {
       const primaryAccount = editLastFmAccounts.find(a => a.isPrimary) || editLastFmAccounts[0] || { username: '', apiKey: '' };
@@ -1305,12 +1339,12 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
                            <div>
                                <div className="text-xs text-gray-500 font-bold uppercase truncate">Spotify Premium</div>
                                <div className={`font-bold truncate ${currentUser.spotifyPremiumMode ? 'text-green-400' : 'text-gray-400'}`}>
-                                   {currentUser.spotifyPremiumMode ? 'Verified Active' : 'Not Verified'}
+                                   {currentUser.verifiedSpotifyAccounts?.length ? `${currentUser.verifiedSpotifyAccounts.length} Verified Accounts` : (currentUser.spotifyPremiumMode ? 'Verified Active' : 'Not Verified')}
                                </div>
                            </div>
                            <div className="flex flex-col items-end gap-2 shrink-0">
                                <button onClick={handleConnectSpotify} className="text-[10px] text-white font-bold bg-[#1DB954] hover:bg-[#1ed760] px-3 py-1.5 rounded-full shadow-lg">
-                                   Verify
+                                   Verify New
                                </button>
                            </div>
                         </div>

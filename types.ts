@@ -55,6 +55,7 @@ export interface User {
   patchedDates?: string[]; // Dates that were patched using extra points
   spotifyAccessToken?: string;
   spotifyPremiumMode?: boolean;
+  verifiedSpotifyAccounts?: { id: string; email?: string; plan: string; addedAt: string }[];
 }
 
 export interface CloudConfig {
