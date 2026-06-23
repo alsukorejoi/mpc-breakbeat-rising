@@ -6,14 +6,13 @@
   <body>
     <script>
       (function() {
-        const hash = window.location.hash.substring(1);
-        const params = new URLSearchParams(hash);
-        const accessToken = params.get('access_token');
-        const error = params.get('error') || new URLSearchParams(window.location.search).get('error');
+        const searchParams = new URLSearchParams(window.location.search);
+        const code = searchParams.get('code');
+        const error = searchParams.get('error');
 
         if (window.opener) {
-          if (accessToken) {
-            window.opener.postMessage({ type: 'SPOTIFY_AUTH_SUCCESS', accessToken: accessToken }, '*');
+          if (code) {
+            window.opener.postMessage({ type: 'SPOTIFY_AUTH_CODE', code: code }, '*');
           } else if (error) {
             window.opener.postMessage({ type: 'SPOTIFY_AUTH_ERROR', error: error }, '*');
           }

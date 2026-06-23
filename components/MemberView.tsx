@@ -76,7 +76,7 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
   const isHutangDay = isPastDate && tracks.length > 0 && !hasCheckedInSelectedDate;
   const isLockedHutang = isHutangDay && !isWeekendVal;
 
-  const handleConnectSpotify = () => {
+  const handleConnectSpotify = async () => {
     let clientId = localStorage.getItem('SPOTIFY_CLIENT_ID');
     if (!clientId) {
       clientId = window.prompt("Dev Setup: Please enter your Spotify Client ID.\\n\\nMake sure you have added 'https://<your-app-url>/auth-callback.html' to the Redirect URIs in your Spotify Developer Dashboard.");
@@ -89,7 +89,30 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
 
     const redirectUri = `${window.location.origin}/auth-callback.html`;
     const scopes = 'user-read-private user-read-email';
-    const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&show_dialog=true`;
+    
+    const generateRandomString = (length: number) => {
+      const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      const values = crypto.getRandomValues(new Uint8Array(length));
+      return values.reduce((acc, x) => acc + possible[x % possible.length], "");
+    };
+    
+    const sha256 = async (plain: string) => {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(plain);
+      return window.crypto.subtle.digest('SHA-256', data);
+    };
+    
+    const base64urlencode = (a: ArrayBuffer) => {
+      return btoa(String.fromCharCode.apply(null, new Uint8Array(a) as any))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    };
+    
+    const codeVerifier = generateRandomString(64);
+    window.localStorage.setItem('spotify_code_verifier', codeVerifier);
+    const hashed = await sha256(codeVerifier);
+    const codeChallenge = base64urlencode(hashed);
+
+    const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&code_challenge_method=S256&code_challenge=${codeChallenge}&show_dialog=true`;
 
     window.open(authUrl, 'spotify_popup', 'width=600,height=700');
   };
@@ -100,22 +123,48 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
         return;
       }
       
-      if (event.data?.type === 'SPOTIFY_AUTH_SUCCESS') {
-        const { accessToken } = event.data;
+      if (event.data?.type === 'SPOTIFY_AUTH_CODE') {
+        const { code } = event.data;
+        const codeVerifier = localStorage.getItem('spotify_code_verifier');
+        const clientId = localStorage.getItem('SPOTIFY_CLIENT_ID');
+        const redirectUri = `${window.location.origin}/auth-callback.html`;
+
         try {
-          const res = await fetch('https://api.spotify.com/v1/me', {
-            headers: { 'Authorization': `Bearer ${accessToken}` }
+          const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+              client_id: clientId || '',
+              grant_type: 'authorization_code',
+              code: code,
+              redirect_uri: redirectUri,
+              code_verifier: codeVerifier || '',
+            }),
           });
-          if (res.ok) {
-            const data = await res.json();
-            const isPremium = data.product === 'premium';
+          
+          if (tokenResponse.ok) {
+            const tokenData = await tokenResponse.json();
+            const accessToken = tokenData.access_token;
             
-            const updatedUser = await storageService.updateUserProfile(currentUser.id, {
-              spotifyAccessToken: accessToken,
-              spotifyPremiumMode: isPremium
+            const res = await fetch('https://api.spotify.com/v1/me', {
+              headers: { 'Authorization': `Bearer ${accessToken}` }
             });
-            onUpdateUser(updatedUser);
-            alert(`Verified! Premium Status: ${isPremium ? 'YES' : 'NO'} (Plan: ${data.product})`);
+            if (res.ok) {
+              const data = await res.json();
+              const isPremium = data.product === 'premium';
+              
+              const updatedUser = await storageService.updateUserProfile(currentUser.id, {
+                spotifyAccessToken: accessToken,
+                spotifyPremiumMode: isPremium
+              });
+              onUpdateUser(updatedUser);
+              alert(`Verified! Premium Status: ${isPremium ? 'YES' : 'NO'} (Plan: ${data.product})`);
+            }
+          } else {
+             const err = await tokenResponse.json();
+             alert('Failed to get Token: ' + JSON.stringify(err));
           }
         } catch (e) {
           alert('Failed to verify Spotify account status.');
