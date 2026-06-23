@@ -945,6 +945,35 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                             </div>
                         </div>
 
+                        {/* Spotify Status */}
+                        <div className="glass p-4 rounded-xl border border-white/5">
+                            <h4 className="text-gray-400 text-xs font-bold uppercase mb-3 flex items-center gap-2">
+                                <ExternalLink size={12} /> Spotify Integrasi
+                            </h4>
+                            <div className="grid gap-3">
+                                <div>
+                                    <label className="text-[10px] text-gray-500 block">Status Akun</label>
+                                    <div className="mt-1">
+                                        {viewingUser.spotifyAccessToken ? (
+                                            viewingUser.spotifyPremiumMode ? (
+                                                <span className="text-[#1DB954] text-sm font-bold flex items-center gap-2">
+                                                    <CheckCircle2 size={16} /> Verified Premium
+                                                </span>
+                                            ) : (
+                                                <span className="text-gray-400 text-sm font-bold flex items-center gap-2">
+                                                    <CheckCircle2 size={16} /> Verified Free
+                                                </span>
+                                            )
+                                        ) : (
+                                            <span className="text-gray-600 text-sm font-bold flex items-center gap-2">
+                                                <XCircle size={16} /> Unverified
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* WhatsApp Details */}
                         <div className="glass p-4 rounded-xl border border-white/5">
                             <h4 className="text-gray-400 text-xs font-bold uppercase mb-3 flex items-center gap-2">
