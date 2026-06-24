@@ -788,6 +788,7 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
 
         {!hasCheckedInSelectedDate && 
          selectedDate.toDateString() !== new Date().toDateString() && 
+         isWeekendVal &&
          (currentUser.extraPointsBalance || 0) > 0 && (
           <button 
             onClick={handlePatchAbsence}
