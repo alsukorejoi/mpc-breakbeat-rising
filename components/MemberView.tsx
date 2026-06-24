@@ -43,6 +43,9 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
   const [editPlaylistUrl2, setEditPlaylistUrl2] = useState('');
   const [editPersonalArtist2, setEditPersonalArtist2] = useState('');
   const [editPersonalTrack2, setEditPersonalTrack2] = useState('');
+  const [editPlaylistUrl3, setEditPlaylistUrl3] = useState('');
+  const [editPersonalArtist3, setEditPersonalArtist3] = useState('');
+  const [editPersonalTrack3, setEditPersonalTrack3] = useState('');
   const [editWhatsappName, setEditWhatsappName] = useState('');
   const [editWhatsappNumber, setEditWhatsappNumber] = useState('');
 
@@ -470,6 +473,9 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
     setEditPlaylistUrl2(currentUser.personalPlaylistUrl2 || '');
     setEditPersonalArtist2(currentUser.personalArtist2 || '');
     setEditPersonalTrack2(currentUser.personalTrack2 || '');
+    setEditPlaylistUrl3(currentUser.personalPlaylistUrl3 || '');
+    setEditPersonalArtist3(currentUser.personalArtist3 || '');
+    setEditPersonalTrack3(currentUser.personalTrack3 || '');
     setEditWhatsappName(currentUser.whatsappName || '');
     setEditWhatsappNumber(currentUser.whatsappNumber || '');
     setIsEditingProfile(false);
@@ -492,6 +498,9 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
     setEditPlaylistUrl2(currentUser.personalPlaylistUrl2 || '');
     setEditPersonalArtist2(currentUser.personalArtist2 || '');
     setEditPersonalTrack2(currentUser.personalTrack2 || '');
+    setEditPlaylistUrl3(currentUser.personalPlaylistUrl3 || '');
+    setEditPersonalArtist3(currentUser.personalArtist3 || '');
+    setEditPersonalTrack3(currentUser.personalTrack3 || '');
     setEditWhatsappName(currentUser.whatsappName || '');
     setEditWhatsappNumber(currentUser.whatsappNumber || '');
     setIsEditingProfile(true);
@@ -528,6 +537,9 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
         personalPlaylistUrl2: editPlaylistUrl2,
         personalArtist2: editPersonalArtist2,
         personalTrack2: editPersonalTrack2,
+        personalPlaylistUrl3: editPlaylistUrl3,
+        personalArtist3: editPersonalArtist3,
+        personalTrack3: editPersonalTrack3,
         whatsappName: editWhatsappName,
         whatsappNumber: editWhatsappNumber
       };
@@ -1069,6 +1081,47 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
                             </div>
                         </div>
                      </div>
+
+                     <div className="border-t border-white/10 my-4"></div>
+
+                     <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase block mb-1">My Music 3</label>
+                        <div className="space-y-2">
+                            {/* Artist Input */}
+                            <div className="relative">
+                                <Mic2 className="absolute left-3 top-3 text-gray-500" size={16} />
+                                <input 
+                                    type="text"
+                                    value={editPersonalArtist3}
+                                    onChange={(e) => setEditPersonalArtist3(e.target.value)}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-white focus:border-green-500 focus:outline-none placeholder-gray-600 text-sm"
+                                    placeholder="Artist Name 3"
+                                />
+                            </div>
+                            {/* Track Input */}
+                            <div className="relative">
+                                <Music className="absolute left-3 top-3 text-gray-500" size={16} />
+                                <input 
+                                    type="text"
+                                    value={editPersonalTrack3}
+                                    onChange={(e) => setEditPersonalTrack3(e.target.value)}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-white focus:border-green-500 focus:outline-none placeholder-gray-600 text-sm"
+                                    placeholder="Track Title 3"
+                                />
+                            </div>
+                            {/* Link Input */}
+                            <div className="relative">
+                                <LinkIcon className="absolute left-3 top-3 text-gray-500" size={16} />
+                                <input 
+                                    type="text"
+                                    value={editPlaylistUrl3}
+                                    onChange={(e) => setEditPlaylistUrl3(e.target.value)}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-white focus:border-green-500 focus:outline-none placeholder-gray-600 text-sm"
+                                    placeholder="Spotify Link 3 (https://...)"
+                                />
+                            </div>
+                        </div>
+                     </div>
                      
                      <div className="border-t border-white/10 my-4"></div>
                      <div className="flex justify-between items-center mb-2">
@@ -1297,6 +1350,45 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
                                    )}
                                    {!currentUser.personalTrack2 && !currentUser.personalArtist2 && (
                                        <div className="text-xs text-purple-500 flex items-center gap-1 mt-1">
+                                           Open Link <ExternalLink size={10} />
+                                       </div>
+                                   )}
+                               </a>
+                           ) : (
+                               <button 
+                                onClick={() => setIsEditingProfile(true)}
+                                className="text-sm text-gray-500 italic hover:text-white transition-colors text-left"
+                               >
+                                   Tap to set your music...
+                               </button>
+                           )}
+                        </div>
+                     </div>
+
+                     {/* Personal Music Link 3 */}
+                     <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
+                        <div className="w-10 h-10 rounded-full bg-orange-900/20 text-orange-400 flex items-center justify-center border border-orange-500/20 shrink-0">
+                           <Headphones size={20} />
+                        </div>
+                        <div className="overflow-hidden w-full">
+                           <div className="text-xs text-gray-500 font-bold uppercase truncate mb-0.5">My Music 3</div>
+                           {currentUser.personalPlaylistUrl3 ? (
+                               <a 
+                                 href={currentUser.personalPlaylistUrl3}
+                                 target="_blank"
+                                 rel="noopener noreferrer" 
+                                 className="group block"
+                               >
+                                   <div className="font-bold text-orange-400 group-hover:text-orange-300 group-hover:underline truncate text-lg leading-tight">
+                                       {currentUser.personalTrack3 || 'My Playlist'}
+                                   </div>
+                                   {currentUser.personalArtist3 && (
+                                       <div className="text-sm text-gray-400 truncate">
+                                           {currentUser.personalArtist3}
+                                       </div>
+                                   )}
+                                   {!currentUser.personalTrack3 && !currentUser.personalArtist3 && (
+                                       <div className="text-xs text-orange-500 flex items-center gap-1 mt-1">
                                            Open Link <ExternalLink size={10} />
                                        </div>
                                    )}

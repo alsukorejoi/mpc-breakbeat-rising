@@ -48,6 +48,9 @@ export interface User {
   personalPlaylistUrl2?: string;
   personalArtist2?: string;
   personalTrack2?: string;
+  personalPlaylistUrl3?: string;
+  personalArtist3?: string;
+  personalTrack3?: string;
   whatsappName?: string;
   whatsappNumber?: string;
   extraPointsBalance?: number; // Current balance of extra points
