@@ -331,8 +331,24 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
              return true;
           });
 
-          if (foundTracks.length < totalMinPlayCount) {
-             totalMinPlayCount = foundTracks.length;
+          const foundTracksOnDate = foundTracks.filter(recent => {
+             if (recent['@attr']?.nowplaying === 'true') {
+                 return isToday;
+             }
+             if (recent.date && recent.date.uts) {
+                 const trackTime = parseInt(recent.date.uts);
+                 const endOfDay = new Date(selectedDate);
+                 endOfDay.setHours(23, 59, 59, 999);
+                 const toTime = Math.floor(endOfDay.getTime() / 1000);
+                 return trackTime <= toTime;
+             }
+             return false;
+          });
+
+          const effectivePlays = Math.max(foundTracksOnDate.length, foundTracks.length > 0 ? 1 : 0);
+
+          if (effectivePlays < totalMinPlayCount) {
+             totalMinPlayCount = effectivePlays;
           }
 
           foundTracks.forEach(ft => contributingAccounts.add(ft.listenedBy));
