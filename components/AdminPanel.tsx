@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Trash2, Save, ArrowLeft, Plus, Settings, Database, Cloud, CloudOff, Download, Upload, ListMusic, Loader2, RefreshCw, Users, CheckCircle2, Clock, Music, Search, Filter, XCircle, BarChart3, Calendar, Copy, Key, Lock, ShieldCheck, Eye, X, User as UserIcon, Link as LinkIcon, Headphones, CalendarCheck, MessageCircle, ExternalLink } from 'lucide-react';
+import { Trash2, Save, ArrowLeft, Plus, Settings, Database, Cloud, CloudOff, Download, Upload, ListMusic, Loader2, RefreshCw, Users, CheckCircle2, Clock, Music, Search, Filter, XCircle, BarChart3, Calendar, Copy, Key, Lock, ShieldCheck, Eye, X, User as UserIcon, Link as LinkIcon, Headphones, CalendarCheck, MessageCircle, ExternalLink, Circle } from 'lucide-react';
 import { TargetTrack, CloudConfig, User, WeeklySchedule, LastFmTrack } from '../types';
 import { storageService } from '../services/storage';
 import { fetchRecentTracks } from '../services/lastFmService';
@@ -315,6 +315,37 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
       if (possibleDates.some(date => user.checkInHistory!.includes(date))) return true;
     }
     return possibleDates.includes(user.lastCheckInDate || '');
+  };
+
+  // Helper to get weekly checkins for display
+  const getWeeklyCheckIns = (user: User) => {
+    const current = new Date();
+    const day = current.getDay();
+    const diff = current.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(current.setDate(diff));
+    monday.setHours(0,0,0,0);
+
+    const checkInHistory = user.checkInHistory || [];
+    const weekDays = [];
+
+    for (let i = 0; i < 5; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      
+      const possibleDates = [
+        d.toLocaleDateString(),
+        d.toLocaleDateString('en-US'),
+        d.toLocaleDateString('en-GB'),
+        d.toLocaleDateString('id-ID')
+      ];
+      const hasCheckedIn = checkInHistory.some((historyD: string) => possibleDates.includes(historyD));
+
+      weekDays.push({
+        date: d,
+        hasCheckedIn
+      });
+    }
+    return weekDays;
   };
 
   const calculateDebt = (user: User) => {
@@ -670,7 +701,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                                     <th className="pb-3 pl-2 pt-2">App User</th>
                                     <th className="pb-3 pt-2">Last.fm</th>
                                     <th className="pb-3 text-center pt-2">Savings</th>
-                                    <th className="pb-3 text-center pt-2">Pending</th>
+                                    <th className="pb-3 text-center pt-2">Weekly</th>
                                     <th className="pb-3 text-center pt-2">Status</th>
                                     <th className="pb-3 text-right pr-2 pt-2">Action</th>
                                 </tr>
@@ -710,14 +741,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
                                                 <td className="py-4 align-middle text-center text-yellow-500 font-bold">
                                                     {user.extraPointsBalance || 0}
                                                 </td>
-                                                <td className="py-4 align-middle text-center">
-                                                    {debt > 0 ? (
-                                                        <span className="px-2 py-1 bg-red-900/40 text-red-500 rounded-lg text-xs font-black border border-red-500/20">
-                                                            {debt} PENDING
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-gray-600 text-xs">-</span>
-                                                    )}
+                                                <td className="py-4 align-middle">
+                                                    <div className="flex justify-center items-center gap-1.5">
+                                                        {getWeeklyCheckIns(user).map((day, idx) => (
+                                                            <div 
+                                                                key={idx}
+                                                                title={`${day.date.toLocaleDateString('en-US', { weekday: 'short' })}: ${day.hasCheckedIn ? 'Checked In' : 'Pending'}`}
+                                                                className={`w-5 h-5 rounded-full flex items-center justify-center border transition-colors ${
+                                                                    day.hasCheckedIn 
+                                                                        ? 'border-emerald-500/50 bg-emerald-500/10' 
+                                                                        : 'border-white/10 bg-black/40'
+                                                                }`}
+                                                            >
+                                                                {day.hasCheckedIn ? (
+                                                                    <CheckCircle2 size={10} className="text-emerald-500" />
+                                                                ) : (
+                                                                    <Circle size={10} className="text-white/20" />
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </td>
                                                 <td className="py-4 align-middle">
                                                     <div className="flex justify-center">
