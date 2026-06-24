@@ -430,9 +430,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExit }) => {
   return (
     <div className="w-full max-w-4xl mx-auto p-4 md:p-6 animate-fade-in relative">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-        <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
-          Admin Dashboard
-        </h2>
+        <div className="flex flex-col md:flex-row md:items-baseline gap-2 md:gap-3">
+          <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
+            Admin Dashboard
+          </h2>
+          <span className="text-sm md:text-lg text-purple-300/50 font-bold uppercase tracking-widest">
+            MPC Breakbeat Rising
+          </span>
+        </div>
         <button 
           onClick={onExit}
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all text-sm font-medium self-start md:self-auto"
